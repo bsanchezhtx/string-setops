@@ -2,7 +2,7 @@ from functools import *
 import sys
 sys.setrecursionlimit(10000)
 
-# small function to get the length of a list
+# small function to get the length of a list to avoid using len()
 l_length = lambda l: 0 if not l else 1 + l_length(l[1:])
 
 # recursive merge sort function
@@ -37,7 +37,9 @@ def merge(l1, l2):
         
     return result
 
+
 # recursive binary search, returns true if the value is found, false if it's not
+# assumes a sorted list
 def binary_search(x, l, start, end):
     # base case
     if end >= start:
@@ -56,6 +58,7 @@ def binary_search(x, l, start, end):
     else:
         # if the value wasn't found in the list, return false
         return False
+    
 
 # recursive function to make all characters in a string lowercase
 # uses ascii codes
@@ -73,12 +76,17 @@ delim = ["", " ", ",", ".", "<", ">", "/", "?",
                 ";", ":", "\'", "\"", "{", "}", "[", 
                 "]", "\\", "|", "`", "~", "!", "@", 
                 "#", "$", "%", "^", "&", "*", "(", 
-                ")", "+", "=", "-", "_"]
+                ")", "+", "=", "-", "_", "\n", "\t"]
+
 nums = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]   
 
+# function that recursively parses the input
 def parse(str, cur, res):
     # base case
-    if not str:
+    if str == "":
+        # if there's currently a word, eof has been reached
+        if l_length(cur) > 0:
+            res += [cur]
         return res
     
     # check if there is at least one character in the current word
@@ -91,19 +99,19 @@ def parse(str, cur, res):
             # if the head of input is another alphabetic char, word continues
             if str[0] not in nums and str[0] not in delim:
                 cur += str[0]
-                parse(str[1:], cur, res)
+                return parse(str[1:], cur, res)
 
             # if the head of input is delimiter, the word has ended
             if str[0] in delim:
                 # add it to list and start fresh
                 res += [cur]
-                parse(str[1:], "", res)
+                return parse(str[1:], "", res)
 
             # if the head of input is a number, the word has ended
             # but, a new word with the number has begun
             if str[0] in nums:
                 res += [cur]
-                parse(str[1:], f"{str[0]}", res)
+                return parse(str[1:], f"{str[0]}", res)
 
         # case 2, current character is 0-9
         elif cur[-1] in nums:
@@ -111,29 +119,29 @@ def parse(str, cur, res):
             # if the head of the input is a number, word continues
             if str[0] in nums:
                 cur += str[0]
-                parse(str[1:], cur, res)
+                return parse(str[1:], cur, res)
 
             # if the head of the input is a ".", AND there is not
             # already a decimal in the current word, word becomes decimal
             if str[0] == "." and "." not in cur:
                 cur += str[0]
-                parse(str[1:], cur, res)
+                return parse(str[1:], cur, res)
             
             # if the head is ".", but there is already a decimal,
             # word has ended
             if str[0] == "." and "." in cur:
                 res += [cur]
-                parse(str[1:], "", res)
+                return parse(str[1:], "", res)
 
             # if the head is alphabetical, word is over but new one begins
             if str[0] not in delim and str[0] not in nums:
                 res += [cur]
-                parse(str[1:], f"{str[0]}", res)
+                return parse(str[1:], f"{str[0]}", res)
 
             # any other delimiter, word has ended
             if str[0] in delim and not str[0] == ".":
                 res += [cur]
-                parse(str[1:], "", res)
+                return parse(str[1:], "", res)
 
         # case 3, current character in word is a decimal point
         elif cur[-1] == "." and cur[-2] in nums:
@@ -141,20 +149,20 @@ def parse(str, cur, res):
             # if head is number, continue decimal:
             if str[0] in nums:
                 cur += str[0]
-                parse(str[1:], cur, res)
+                return parse(str[1:], cur, res)
 
             # if head is alphabetical, the current word should have
             # its decimal removed, added to the result list, then a new
             # word should begin with the head
             if str[0] not in nums and str[0] not in delim:
                 res += [cur[0:-1]]
-                parse(str[1:], f"{str[0]}", res)
+                return parse(str[1:], f"{str[0]}", res)
 
             # if the head is another delimiter, current word should have its
             # decimal removed, added, then start new word
             if str[0] in delim:
                 res += [cur[0:-1]]
-                parse(str[1:], "", res)
+                return parse(str[1:], "", res)
 
     # otherwise, the current word is empty
     else:
@@ -162,11 +170,11 @@ def parse(str, cur, res):
         if str[0] not in delim:
             # add it if so, then make a recursive call with the new word
             cur += str[0]
-            parse(str[1:], cur, res)
+            return parse(str[1:], cur, res)
         else:
             # otherwise, just move on to the next char in the input string
-            parse(str[1:], cur, res)
-
+            return parse(str[1:], cur, res)
+   
 # main function to perform set operations
 def main():
 
@@ -174,27 +182,32 @@ def main():
     l_head = lambda l: l[0]
     l_last = lambda l: l[-1]
     l_join = lambda l: reduce(lambda x, y: x + y, l)
+    l_in = lambda x, l: binary_search(x, merge_sort(l), 0, l_length(l) - 1)
     l_removedup = lambda l: list(reduce(lambda x, y: x + [y] if y not in x else x, l, []))
 
     # lambda functions to be used in set operations
     l_union = lambda l1, l2: l_removedup(l1 + l2)
-    l_intersection = lambda l1, l2: list(filter(lambda x: binary_search(x, l1, 0, l_length(l1)), l2))
-    l_difference = lambda l1, l2: list(filter(lambda x: x not in l2, l1))
+    l_intersection = lambda l1, l2: list(filter(lambda x: l_in(x, l1), l2))
+    l_difference = lambda l1, l2: list(filter(lambda x: not l_in(x, l2), l1))
 
     # getting command line arguments
     try:
         # TODO: use sys.argv[1] when finished
-        f1 = "testcases/a1.txt"
-        f2 = "testcases/b1.txt"
-        operation = "intersection"
+        f1 = "testcases/a3.txt"
+        f2 = "testcases/b3.txt"
+        operation = "union"
 
         # getting input from files, sorting them, then assigning them to the lists
         # from here, the lists will not be mutated
         with open(f1, "r") as a:
-            a_set = None
+            # a_set = l_removedup(parse(recursive_lowercase(a.read()), "", []))
+            a_set = merge_sort(l_removedup(parse(recursive_lowercase(a.read()), "", [])))
+            print(a_set)
 
         with open(f2, "r") as b:
-            b_set = None
+            # b_set = l_removedup(parse(recursive_lowercase(b.read()), "", []))
+            b_set = merge_sort(l_removedup(parse(recursive_lowercase(b.read()), "", [])))
+            print(b_set)
 
     except Exception as e:
         print(f"{e}")
