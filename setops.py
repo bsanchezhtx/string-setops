@@ -169,7 +169,7 @@ def parse(str, cur, res):
 
 # main function to perform set operations
 def main():
-#64 < ord(x) < 91 
+
     # some simple lambda functions to help
     l_head = lambda l: l[0]
     l_last = lambda l: l[-1]
