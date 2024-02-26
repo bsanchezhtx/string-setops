@@ -192,22 +192,24 @@ def main():
 
     # getting command line arguments
     try:
-        # TODO: use sys.argv[1] when finished
-        f1 = "testcases/a3.txt"
-        f2 = "testcases/b3.txt"
-        operation = "union"
+        if l_length(sys.argv) < 2 or l_length(sys.argv[1]) == 0:
+            raise Exception("A string containing the two files and operations should be passed. Ex. 'set1=a.txt;set2=b.txt;operation=union'")
 
-        # getting input from files, sorting them, then assigning them to the lists
-        # from here, the lists will not be mutated
+        # getting the file names and the operation, uses some built-ins
+        # as we couldn't make a custom parser in time
+        f1 = sys.argv[1].split(";")[0].split("=")[1]
+        f2 = sys.argv[1].split(";")[1].split("=")[1]
+        operation = recursive_lowercase(sys.argv[1].split(";")[2].split("=")[1])
+
+        if not f1 or not f2 or not operation:
+            raise Exception("Invalid argument. Ex. 'set1=a.txt;set2=b.txt;operation=union'")
+
+        # getting lowercase input from files, removing duplicates, sorting them, then assigning them to the lists
         with open(f1, "r") as a:
-            # a_set = l_removedup(parse(recursive_lowercase(a.read()), "", []))
             a_set = merge_sort(l_removedup(parse(recursive_lowercase(a.read()), "", [])))
-            print(a_set)
 
         with open(f2, "r") as b:
-            # b_set = l_removedup(parse(recursive_lowercase(b.read()), "", []))
             b_set = merge_sort(l_removedup(parse(recursive_lowercase(b.read()), "", [])))
-            print(b_set)
 
     except Exception as e:
         print(f"{e}")
@@ -222,10 +224,9 @@ def main():
     elif operation == "difference":
         result = merge_sort(l_difference(a_set, b_set))
     else:
-        print("invalid operation")
+        print("Invalid operation. Use 'union', 'intersection', or 'difference'")
         sys.exit(0)
 
-    print(result)
     # writing to output file
     with open("result.txt", "w") as r:
         for word in result:
