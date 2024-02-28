@@ -37,23 +37,20 @@ def merge(l1, l2):
         
     return result
 
-
 # recursive binary search, returns true if the value is found, false if it's not
 # assumes a sorted list
 def binary_search(x, l, start, end):
     # base case
     if end >= start:
-        mid = (start + end) // 2
-
         # return true if the value is found
-        if l[mid] == x:
+        if l[(start + end) // 2] == x:
             return True
         # otherwise, perform a recursive search based on whether the
         # desire value is larger or smaller
-        elif l[mid] > x:
+        elif l[(start + end) // 2] > x:
             return binary_search(x, l, start, end - 1)
         else:
-            return binary_search(x, l, mid + 1, end)
+            return binary_search(x, l, ((start + end) // 2) + 1, end)
         
     else:
         # if the value wasn't found in the list, return false
